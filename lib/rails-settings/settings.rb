@@ -54,8 +54,17 @@ module RailsSettings
         end
 
         defaults = {}
+        
         if Default.enabled?
-          defaults = starting_with.nil? ? Default.instance : Default.instance.select { |key, _| key.to_s.start_with?(starting_with) }
+          defaults = Default.instance
+          if starting_with
+            if starting_with[-1] == '.' && (namespace = starting_with[0..-2]) && defaults[namespace]
+              defaults = defaults.select! {|k, _| k == namespace }
+            else
+              defaults.select! { |key, _| key.to_s.start_with?(starting_with) }
+            end
+          end
+          defaults = deep_dot_flatten(defaults).to_h
         end
 
         result.reverse_merge! defaults
@@ -119,6 +128,21 @@ module RailsSettings
 
       def rails_initialized?
         Rails.application && Rails.application.initialized?
+      end
+
+      private
+      def deep_dot_flatten(hash)
+        results = []
+        hash.each {|k,v|
+          if v.is_a?(Hash)
+            results += deep_dot_flatten(v).map{|k2,v2|
+              [k.to_s+"."+k2.to_s, v2]
+            }
+          else
+            results << [k.to_s, v]
+          end
+        }
+        results
       end
     end
   end
