@@ -64,7 +64,7 @@ module RailsSettings
               defaults.select! { |key, _| key.to_s.start_with?(starting_with) }
             end
           end
-          defaults = deep_dot_flatten(defaults).to_h
+          defaults = flatten_hash(defaults)
         end
 
         result.reverse_merge! defaults
@@ -131,18 +131,16 @@ module RailsSettings
       end
 
       private
-      def deep_dot_flatten(hash)
-        results = []
-        hash.each {|k,v|
-          if v.is_a?(Hash)
-            results += deep_dot_flatten(v).map{|k2,v2|
-              [k.to_s+"."+k2.to_s, v2]
-            }
+      def flatten_hash(hash)
+        hash.each_with_object({}) do |(k, v), h|
+          if v.is_a? Hash
+            flatten_hash(v).map do |h_k, h_v|
+              h["#{k}.#{h_k}"] = h_v
+            end
           else
-            results << [k.to_s, v]
+            h[k] = v
           end
-        }
-        results
+        end
       end
     end
   end
