@@ -86,7 +86,22 @@ module RailsSettings
         else
           val = nil
         end
+        self.hash_recursive_inject_dot_access(val) if val.is_a? Hash
         val
+      end
+
+      def self.hash_recursive_inject_dot_access(hash_instance)
+		this_func = self.method(__callee__)
+		old_method = hash_instance.method(:method_missing)
+		hash_instance.define_singleton_method(:method_missing) do|name, *args, &block|
+		  if self.key?(name)
+			val = self[name]
+			this_func.call(val) if val.is_a? Hash
+			return val
+		  end
+		  return self[name[0..-2]] = args[1] if name.last == '='
+		  old_method.bind(self).call(name, *args, &block)
+		end
       end
 
       # set a setting value by [] notation
