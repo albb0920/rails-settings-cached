@@ -56,7 +56,7 @@ module RailsSettings
         defaults = {}
         
         if Default.enabled?
-          defaults = Default.instance
+          defaults = flatten_hash(Default.instance)
           if starting_with
             if starting_with[-1] == '.' && (namespace = starting_with[0..-2]) && defaults[namespace]
               defaults = defaults.select! {|k, _| k == namespace }
@@ -64,7 +64,6 @@ module RailsSettings
               defaults.select! { |key, _| key.to_s.start_with?(starting_with) }
             end
           end
-          defaults = flatten_hash(defaults)
         end
 
         result.reverse_merge! defaults

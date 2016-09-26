@@ -23,7 +23,11 @@ module RailsSettings
         keys = key.to_s.split('.')
         val = instance
         keys.each do |k|
-          val = val.fetch(k.to_s, nil)
+          if val.respond_to? :fetch
+            val = val.fetch(k.to_s, nil)
+          else
+            val = nil
+          end
           break if val.nil?
         end
         val
