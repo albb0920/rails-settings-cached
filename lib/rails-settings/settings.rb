@@ -54,16 +54,8 @@ module RailsSettings
         end
 
         defaults = {}
-        
         if Default.enabled?
-          defaults = flatten_hash(Default.instance)
-          if starting_with
-            if starting_with[-1] == '.' && (namespace = starting_with[0..-2]) && defaults[namespace]
-              defaults = defaults.select! {|k, _| k == namespace }
-            else
-              defaults.select! { |key, _| key.to_s.start_with?(starting_with) }
-            end
-          end
+          defaults = starting_with.nil? ? Default.instance : Default.instance.select { |key, _| key.to_s.start_with?(starting_with) }
         end
 
         result.reverse_merge! defaults
@@ -85,22 +77,7 @@ module RailsSettings
         else
           val = nil
         end
-        self.hash_recursive_inject_dot_access(val) if val.is_a? Hash
         val
-      end
-
-      def self.hash_recursive_inject_dot_access(hash_instance)
-		this_func = self.method(__callee__)
-		old_method = hash_instance.method(:method_missing)
-		hash_instance.define_singleton_method(:method_missing) do|name, *args, &block|
-		  if self.key?(name)
-			val = self[name]
-			this_func.call(val) if val.is_a? Hash
-			return val
-		  end
-		  return self[name[0..-2]] = args[1] if name.last == '='
-		  old_method.bind(self).call(name, *args, &block)
-		end
       end
 
       # set a setting value by [] notation
@@ -142,19 +119,6 @@ module RailsSettings
 
       def rails_initialized?
         Rails.application && Rails.application.initialized?
-      end
-
-      private
-      def flatten_hash(hash)
-        hash.each_with_object({}) do |(k, v), h|
-          if v.is_a? Hash
-            flatten_hash(v).map do |h_k, h_v|
-              h["#{k}.#{h_k}"] = h_v
-            end
-          else
-            h[k] = v
-          end
-        end
       end
     end
   end

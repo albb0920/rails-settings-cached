@@ -43,8 +43,21 @@ module RailsSettings
     def initialize
       content = open(self.class.source_path).read
       hash = content.empty? ? {} : YAML.load(ERB.new(content).result).to_hash
-      hash = hash[Rails.env] || {}
+      hash = self.class.flatten_hash(hash[Rails.env] || {})
       self.replace hash
+    end
+
+    private
+    def self.flatten_hash(hash)
+      hash.each_with_object({}) do |(k, v), h|
+        if v.is_a? Hash
+          flatten_hash(v).map do |h_k, h_v|
+            h["#{k}.#{h_k}"] = h_v
+          end
+        else
+          h[k] = v
+        end
+      end
     end
   end
 end
