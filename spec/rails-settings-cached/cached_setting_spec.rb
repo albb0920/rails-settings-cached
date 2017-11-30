@@ -4,40 +4,26 @@ describe RailsSettings::CachedSettings do
   before(:each) { Rails.cache.clear }
 
   describe '.cache_key' do
-    before do
-      allow(Setting).to receive(:cache_prefix_by_startup).and_return('t123456')
-    end
 
     it 'should work with instance method' do
       obj = Setting.unscoped.first
-      expect(obj.cache_key).to eq("rails_settings_cached/t123456/#{obj.var}")
+      expect(obj.cache_key).to eq("rails_settings_cached/#{obj.var}")
     end
 
     it 'should work with class method' do
-      expect(Setting.cache_key('abc', nil)).to eql('rails_settings_cached/t123456/abc')
+      expect(Setting.cache_key('abc', nil)).to eql('rails_settings_cached/abc')
     end
 
     it 'should work with class method and scoped object' do
       obj = User.first
-      expect(Setting.cache_key('abc', obj)).to eql('rails_settings_cached/t123456/User-1/abc')
-    end
-  end
-
-  describe '.cache_prefix_by_startup' do
-    it 'should work' do
-      digest = Digest::MD5.hexdigest(RailsSettings::Default.instance.to_s)
-      expect(described_class.cache_prefix_by_startup).to eq(digest)
+      expect(Setting.cache_key('abc', obj)).to eql('rails_settings_cached/User-1/abc')
     end
   end
 
   describe '.cache_prefix' do
-    before do
-      allow(described_class).to receive(:cache_prefix_by_startup).and_return('t123456')
-    end
-
     it 'sets cache key prefix' do
       described_class.cache_prefix { 'stuff' }
-      expect(described_class.cache_key('abc', nil)).to eql('rails_settings_cached/t123456/stuff/abc')
+      expect(described_class.cache_key('abc', nil)).to eql('rails_settings_cached/stuff/abc')
     end
   end
 
