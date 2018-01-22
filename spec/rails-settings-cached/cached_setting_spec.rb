@@ -7,23 +7,23 @@ describe RailsSettings::CachedSettings do
 
     it 'should work with instance method' do
       obj = Setting.unscoped.first
-      expect(obj.cache_key).to eq("rails_settings_cached/#{obj.var}")
+      expect(obj.cache_key).to eq("test/rails_settings_cached/#{obj.var}")
     end
 
     it 'should work with class method' do
-      expect(Setting.cache_key('abc', nil)).to eql('rails_settings_cached/abc')
+      expect(Setting.cache_key('abc', nil)).to eql('test/rails_settings_cached/abc')
     end
 
     it 'should work with class method and scoped object' do
       obj = User.first
-      expect(Setting.cache_key('abc', obj)).to eql('rails_settings_cached/User-1/abc')
+      expect(Setting.cache_key('abc', obj)).to eql('test/rails_settings_cached/User-1/abc')
     end
   end
 
   describe '.cache_prefix' do
     it 'sets cache key prefix' do
       described_class.cache_prefix { 'stuff' }
-      expect(described_class.cache_key('abc', nil)).to eql('rails_settings_cached/stuff/abc')
+      expect(described_class.cache_key('abc', nil)).to eql('test/rails_settings_cached/stuff/abc')
     end
   end
 
